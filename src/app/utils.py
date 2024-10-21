@@ -92,4 +92,3 @@ def make_cluster(data, n=6):
     data['cluster'] = model.labels_
     return data
 
-# %%

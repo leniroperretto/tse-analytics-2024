@@ -57,5 +57,3 @@ if cluster:
 fig = make_scatter(data, size=size, cluster=cluster)
 
 st.pyplot(fig)
-
-# %%
