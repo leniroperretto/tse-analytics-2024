@@ -38,6 +38,7 @@ welcome = """
 st.markdown(welcome)
 
 uf_options = df['SG_UF'].unique().tolist()
+uf_options.sort()
 uf_options.remove('BR')
 uf_options = ['BR'] + uf_options
 
