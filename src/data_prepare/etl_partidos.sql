@@ -1,6 +1,6 @@
 WITH tb_cand AS (
     
-    SELECT 
+    SELECT DISTINCT 
         SQ_CANDIDATO,
         SG_UF,
         DS_CARGO,
@@ -17,10 +17,8 @@ WITH tb_cand AS (
 ),
 
 tb_total_bens AS (
-
     SELECT SQ_CANDIDATO,
         SUM(CAST(REPLACE( VR_BEM_CANDIDATO, ',', '.') AS DECIMAL(15, 2))) AS totalBens
-        
     FROM tb_bens
     GROUP BY 1
 ),
@@ -40,6 +38,7 @@ tb_group_uf AS (
     SELECT 
         SG_PARTIDO,
         NM_PARTIDO,
+        'GERAL' AS DS_CARGO,
         SG_UF,
         AVG(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS txGenFeminino,
         SUM(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS totalGenFeminino,
@@ -53,7 +52,7 @@ tb_group_uf AS (
 
     FROM tb_info_completa_cand AS t1
 
-    GROUP BY 1,2,3
+    GROUP BY 1,2,3,4
 
 ),
 
@@ -62,32 +61,82 @@ tb_group_br AS (
     SELECT 
         SG_PARTIDO,
         NM_PARTIDO,
+        'GERAL' AS DS_CARGO,
         'BR' AS SG_UF,
-        1.0 * SUM(totalGenFeminino) / SUM(totalCandidaturas) AS txGenFeminino,
-        SUM(totalGenFeminino) AS totalGenFeminino,
+        AVG(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS txGenFeminino,
+        SUM(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS totalGenFeminino,
+        AVG(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS txCorRacaPreta,
+        SUM(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS totalCorRacaPreta,
+        AVG(CASE WHEN DS_COR_RACA IN ('PRETA', 'PARDA') THEN 1 ELSE 0 END) AS txCorRacaPretaParda,
+        SUM(CASE WHEN DS_COR_RACA IN ('PRETA', 'PARDA') THEN 1 ELSE 0 END) AS totalCorRacaPretaParda,
+        AVG(CASE WHEN DS_COR_RACA <> 'BRANCA' THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
+        SUM(CASE WHEN DS_COR_RACA <> 'BRANCA' THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
+        COUNT(*) AS totalCandidaturas
 
-        1.0 * SUM(totalCorRacaPreta) / SUM(totalCandidaturas) AS txCorRacaPreta,
-        SUM(totalCorRacaPreta) AS totalCorRacaPreta,
+    FROM tb_info_completa_cand AS t1
 
-        1.0 * SUM(totalCorRacaPretaParda) / SUM(totalCandidaturas) AS txCorRacaPretaParda,
-        SUM(totalCorRacaPretaParda) AS totalCorRacaPretaParda,
+    GROUP BY 1,2,3,4
 
-        1.0 * SUM(totalCorRacaNaoBranca) / SUM(totalCandidaturas) AS txCorRacaNaoBranca,
-        SUM(totalCorRacaNaoBranca) AS totalCorRacaNaoBranca,
+),
 
-        SUM(totalCandidaturas) AS totalCandidaturas
+tb_group_cargo_uf AS (
+SELECT 
+        SG_PARTIDO,
+        NM_PARTIDO,
+        DS_CARGO,
+        SG_UF,
+        AVG(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS txGenFeminino,
+        SUM(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS totalGenFeminino,
+        AVG(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS txCorRacaPreta,
+        SUM(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS totalCorRacaPreta,
+        AVG(CASE WHEN DS_COR_RACA IN ('PRETA', 'PARDA') THEN 1 ELSE 0 END) AS txCorRacaPretaParda,
+        SUM(CASE WHEN DS_COR_RACA IN ('PRETA', 'PARDA') THEN 1 ELSE 0 END) AS totalCorRacaPretaParda,
+        AVG(CASE WHEN DS_COR_RACA <> 'BRANCA' THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
+        SUM(CASE WHEN DS_COR_RACA <> 'BRANCA' THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
+        COUNT(*) AS totalCandidaturas
 
-    FROM tb_group_uf 
+    FROM tb_info_completa_cand AS t1
 
-    GROUP BY 1, 2, 3
+    GROUP BY 1,2,3,4
+),
+
+tb_group_cargo_br AS (
+SELECT 
+        SG_PARTIDO,
+        NM_PARTIDO,
+        DS_CARGO,
+        'BR' AS SG_UF,
+        AVG(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS txGenFeminino,
+        SUM(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS totalGenFeminino,
+        AVG(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS txCorRacaPreta,
+        SUM(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS totalCorRacaPreta,
+        AVG(CASE WHEN DS_COR_RACA IN ('PRETA', 'PARDA') THEN 1 ELSE 0 END) AS txCorRacaPretaParda,
+        SUM(CASE WHEN DS_COR_RACA IN ('PRETA', 'PARDA') THEN 1 ELSE 0 END) AS totalCorRacaPretaParda,
+        AVG(CASE WHEN DS_COR_RACA <> 'BRANCA' THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
+        SUM(CASE WHEN DS_COR_RACA <> 'BRANCA' THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
+        COUNT(*) AS totalCandidaturas
+
+    FROM tb_info_completa_cand AS t1
+
+    GROUP BY 1,2,3,4
 ),
 
 tb_union_all AS (
+
     SELECT * FROM tb_group_br
     
     UNION ALL
     
     SELECT * FROM tb_group_uf
+
+    UNION ALL
+
+    SELECT * FROM tb_group_cargo_br
+
+    UNION ALL
+    
+    SELECT * FROM tb_group_cargo_uf
+
 )
 
 SELECT * FROM tb_union_all
